@@ -1,3 +1,4 @@
+
 load"torsionsubgroup.m";
 
 
@@ -6,6 +7,7 @@ function Chabauty0Genus3(J)
 /*Returns the rational points on the curve H :y^2:=f(x) where f in Z[x] of genus 3 of which J  is the Jacobian, under the condition that J has Mordell-Weil rank zero.*/
    H:= Curve(J);
    g:=Genus(H);
+   if Degree(H) eq 7 then
    G, m := myTorsionSubgroup(J);
    K := KummerVarietyG3(H);
    TK := { K | K ! ToKummerVariety(m(D)) : D in G | D ne G!0 };
@@ -14,14 +16,40 @@ function Chabauty0Genus3(J)
    points join:= PointsAtInfinity(H);
       for t in TK do
       if t[g]^2 eq 4*t[g-1]*t[g+1] and t[g-1] ne 0 then
-         points join:= Points(H, Abs(t[g])/2/t[g-1]);
+         points join:= Points(H, -t[g]/2/t[g-1]);
       end if;
    end for;
+   else 
+   // f is degree(f) 8 and Roots(f) is not empty
+   f := HyperellipticPolynomials(H);
+   F:=Numerator(Evaluate(f,  (1+Roots(f)[1][1]*x)/x));
+    C:=HyperellipticCurve(F);
+   H1:=SimplifiedModel(MinimalWeierstrassModel(C));
+   F1:= HyperellipticPolynomials(H1);
+   J1:=Jacobian(H1);
+   G, m := myTorsionSubgroup(J1);
+   K := KummerVarietyG3(H1);
+   TK := { K | K ! ToKummerVariety(m(D)) : D in G | D ne G!0 };
+   points_H1 := {@ H1 | H1![r1[1],0] : r1 in Roots(F1) @};
+   points := {@ H | H![Roots(f)[1][1],0]@};
+   points_H1 join:= PointsAtInfinity(H1);
+   points join:= PointsAtInfinity(H);
+   // the points of H1 that are only affine, excluding those of Weierstrass.
+      for t in TK do
+      if t[g]^2 eq 4*t[g-1]*t[g+1] and t[g-1] ne 0 then
+         points_H1 join:= Points(H1, -t[g]/2/t[g-1]);
+      end if;
+   end for;
+   for i in [1..#points_H1] do
+         if points_H1[i][1] ne 0 then
+         points join:= Points(H,(1+Roots(f)[1][1]*points_H1[i][1])/points_H1[i][1]);
+         else 
+         points join:= Points(H,0);
+         end if;
+   end for;
+   end if;
    return points;
 end function;
-
-
-
 
 
 function strategy_quotient(f)
