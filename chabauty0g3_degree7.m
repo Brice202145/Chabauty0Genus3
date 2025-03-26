@@ -1,10 +1,8 @@
-
 load"torsionsubgroup.m";
 
 
 function Chabauty0Genus3(J)
-
-/*Returns the rational points on the curve H :y^2:=f(x) where f in Z[x] of genus 3 of which J  is the Jacobian, under the condition that J has Mordell-Weil rank zero.*/
+/* Returns the rational points on the genus 3 hyperelliptic curve given by \( H: y^2 = f(x) \), where \( f \in \mathbb{Z}[x] \) is of degree 7 or 8 (if \( H \) admits a rational Weierstrass point), and whose Jacobian is \( J \), under the condition that \( J \) has Mordell-Weil rank zero. */
    H:= Curve(J);
    g:=Genus(H);
    if Degree(H) eq 7 then
@@ -50,8 +48,20 @@ function Chabauty0Genus3(J)
    end if;
    return points;
 end function;
-
-
+//Verify if the points returned by **Chabauty0Genus3** are the same as the known rational points in Magma with a height less than  10^5 .
+function compare(H,  L)
+    // height := 10^4;
+    // L := Chabauty0Genus3(J);
+    point_coords := L; ;
+    candidat := RationalPoints(H: Bound:=10^4);
+    if #point_coords eq  #candidat  then 
+        return [], [];
+    else 
+        return #point_coords, #candidat;
+    end if;
+ end function;
+ 
+ 
 function strategy_quotient(f)
 
 /*Returns the rational points on the curve C of genus  3 of which J is isogenous to ExJ_H, where H is an hyperelliptic curve of genus 2, under the condition that J_H has Mordell-Weil rank <=1 and E Mordell-Weil rank >=1*/
@@ -88,3 +98,4 @@ if RankBound(Jacobian(E)) ne 0 then
 end if;
 
 end function; 
+
