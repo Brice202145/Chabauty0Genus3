@@ -129,6 +129,10 @@ K := KummerVarietyG3(C);
      end if;
  end function; 
  function ComputeValidPoints(C, G, p, b, B)
+ // G= the set  of the points over Jacobian over F_p
+ // C = genus 3 curve over the rationals
+// b = bound for p-adic approximation precision. (Section 4.4)
+// B = height bound for torsion points (Theorem 3.15)
     valid_results := [];
     for P in G do
         try
