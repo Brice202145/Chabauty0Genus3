@@ -70,7 +70,18 @@ function Chabauty0Genus3(H)
 
    return points;  // Return the set of rational points found on H
 end function;
-
+//Verify if the points returned by **Chabauty0Genus3** are the same as the known rational points in Magma with a height less than  10^5 .
+function compare(H,  L)
+    // height := 10^4;
+    // L := Chabauty0Genus3(J);
+    point_coords := L; ;
+    candidat := RationalPoints(H: Bound:=10^4);
+    if #point_coords eq  #candidat  then 
+        return [], [];
+    else 
+        return #point_coords, #candidat;
+    end if;
+ end function;
  
  
 function strategy_quotient(f)
