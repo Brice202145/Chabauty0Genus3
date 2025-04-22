@@ -1,8 +1,11 @@
+
 AttachSpec("spec");
 Attach("torsion3.m");
 Attach("transformations.m");
+SetVerbose("JacHypTorsion", 2);
+Q<x>:=PolynomialRing(Rationals());
 
-function Chabauty0Genus3(H)
+function Chabauty0Genus3(H : eps := 0.01)
 /* 
     This function returns the rational points on a genus 3 hyperelliptic curve 
     of the form H : y^2 = f(x), where f is a polynomial of degree 7 or 8 with integer coefficients.
@@ -13,7 +16,11 @@ function Chabauty0Genus3(H)
    g := Genus(H);              // The genus of the curve (should be 3 in this context)
 
    if Degree(H) eq 7 then      // Case where f has degree 7 (rational Weierstrass point at infinity)
-      G, m := myTorsionSubgroup(J);           // Torsion subgroup of J, with an isomorphism m
+      G, m := myTorsionSubgroup(J : eps := eps);           // Torsion subgroup of J, with an isomorphism m
+      if IsOne(#G) then // trivial torsion subgroup
+          return PointsAtInfinity(H);
+      end if;
+        
       K := KummerVarietyG3(H);                // Kummer variety associated to curve H
       TK := { K | K ! ToKummerVariety(m(D)) : D in G | D ne G!0 };  // Images of torsion elements (except 0) on the Kummer variety
 
@@ -32,7 +39,9 @@ function Chabauty0Genus3(H)
    // Case where f has degree 8: we need to transform the model to use a rational Weierstrass point
 
       f := HyperellipticPolynomials(H);   // Retrieve f(x)
-      alpha := Roots(f)[1][1];            // Take a rational root of f
+      rts := Roots(f);
+      assert not IsEmpty(rts);            // Need >= 1 rational Weierstrass point
+      alpha := rts[1][1];
 
       // Change of variable x ↦ (1 + αx)/x to obtain a model with a Weierstrass point at infinity
       F := Numerator(Evaluate(f, (1 + alpha*x)/x));  
@@ -41,7 +50,10 @@ function Chabauty0Genus3(H)
       F1 := HyperellipticPolynomials(H1);                     // Polynomial of the transformed curve
 
       J1 := Jacobian(H1);                // Jacobian of the transformed curve
-      G, m := myTorsionSubgroup(J1);     // Torsion subgroup of the Jacobian
+      G, m := myTorsionSubgroup(J1 : eps := eps);     // Torsion subgroup of the Jacobian
+      if IsOne(#G) then // trivial torsion subgroup
+          return {@ H | H![alpha,0] @};
+      end if;
       K := KummerVarietyG3(H1);          // Kummer variety associated to H1
       TK := { K | K ! ToKummerVariety(m(D)) : D in G | D ne G!0 };  // Images on the Kummer
 
@@ -60,8 +72,8 @@ function Chabauty0Genus3(H)
       // Map points on H1 back to points on H using the inverse of the variable change
       for i in [1..#points_H1] do
          if points_H1[i][1] ne 0 then
-            x := points_H1[i][1];
-            points join:= Points(H, (1 + alpha * x)/x);
+            xP := points_H1[i][1];
+            points join:= Points(H, (1 + alpha * xP)/xP);
          else 
             points join:= Points(H, 0);  // Case x = 0 in the change of variable
          end if;
@@ -70,18 +82,7 @@ function Chabauty0Genus3(H)
 
    return points;  // Return the set of rational points found on H
 end function;
-//Verify if the points returned by **Chabauty0Genus3** are the same as the known rational points in Magma with a height less than  10^5 .
-function compare(H,  L)
-    // height := 10^4;
-    // L := Chabauty0Genus3(J);
-    point_coords := L; ;
-    candidat := RationalPoints(H: Bound:=10^4);
-    if #point_coords eq  #candidat  then 
-        return [], [];
-    else 
-        return #point_coords, #candidat;
-    end if;
- end function;
+
  
  
 function strategy_quotient(f)
@@ -120,4 +121,5 @@ if RankBound(Jacobian(E)) ne 0 then
 end if;
 
 end function; 
+
 
